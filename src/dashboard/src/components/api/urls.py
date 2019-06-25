@@ -24,6 +24,7 @@ urlpatterns = [
     url(r"transfer/approve", views.approve_transfer),
     url(r"transfer/unapproved", views.unapproved_transfers),
     url(r"transfer/completed", views.completed_transfers),
+    url(r"transfer/status/?$", views.status_all, {"unit_type": "transfer"}),
     url(
         r"transfer/status/(?P<unit_uuid>" + settings.UUID_REGEX + ")",
         views.status,
@@ -31,6 +32,7 @@ urlpatterns = [
     ),
     url(r"transfer/start_transfer/", views.start_transfer_api),
     url(r"transfer/reingest", views.reingest, {"target": "transfer"}),
+    url(r"ingest/status/?$", views.status_all, {"unit_type": "ingest"}),
     url(
         r"ingest/status/(?P<unit_uuid>" + settings.UUID_REGEX + ")",
         views.status,

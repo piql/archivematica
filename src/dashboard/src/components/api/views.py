@@ -229,9 +229,40 @@ def get_unit_status(unit_uuid, unit_type):
 
     return ret
 
-
+def get_status_all(unit_type):
+    status = []    
+    model_name = {"transfer": "Transfer", "ingest": "SIP"}.get(unit_type)
+    model = getattr(models, model_name)
+    units = model.objects.filter(hidden=False)
+    status_err = None
+    for unit in units:
+        res, code = get_status(
+            unit.uuid, {"transfer": "unitTransfer", "ingest": "unitSIP"}
+            .get(unit_type)
+        )
+        if code != 200:
+            return helpers.json_response(res, code)
+        status.append(res)
+    return (status, 200)
+    
 @_api_endpoint(expected_methods=["GET"])
-def status(request, unit_uuid, unit_type):
+def status_all(request, unit_type):
+    status = []
+    res, code = get_status_all(unit_type)
+    if code != 200:
+        return helpers.json_response(res, code)
+    status.extend(res)
+
+    #res, code = get_status_all("ingest")
+    #if code != 200:
+    #    return helpers.json_response(res, code)
+    #status.extend(res)
+     
+    msg = {"message": "Fetched status successfully", "results": status}
+    return helpers.json_response(msg, 200)
+    
+
+def get_status(unit_uuid, unit_type):
     # Example: http://127.0.0.1/api/transfer/status/?username=mike&api_key=<API key>
     response = {}
     error = None
@@ -255,9 +286,7 @@ def status(request, unit_uuid, unit_type):
             unit_type, unit_uuid
         )
         response["error"] = True
-        return django.http.HttpResponseBadRequest(  # 400
-            json.dumps(response), content_type="application/json"
-        )
+        return (response, 400);
     directory = unit.currentpath if unit_type == "unitSIP" else unit.currentlocation
     response["path"] = directory.replace(
         SHARED_PATH_TEMPLATE_VAL, SHARED_DIRECTORY_ROOT, 1
@@ -272,17 +301,22 @@ def status(request, unit_uuid, unit_type):
     except IndexError as err:
         msg = "Unable to determine the status of the unit {}".format(unit_uuid)
         LOGGER.error("%s (%s)", msg, err)
-        return _error_response(msg, status_code=400)
+        response["message"] = msg
+        response["error"] = True
+        return (response, 400);
     response.update(status_info)
 
     if error is not None:
         response["message"] = error
         response["error"] = True
-        return django.http.HttpResponseServerError(  # 500
-            json.dumps(response), content_type="application/json"
-        )
+        return (response, 500);
+    
     response["message"] = "Fetched status for {} successfully.".format(unit_uuid)
-    return helpers.json_response(response)
+    return (response, 200);
+
+@_api_endpoint(expected_methods=["GET"])
+def status(request, unit_uuid, unit_type):
+    return helpers.json_response(*get_status(unit_uuid, unit_type))
 
 
 @_api_endpoint(expected_methods=["GET"])
