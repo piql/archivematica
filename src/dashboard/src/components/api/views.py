@@ -240,25 +240,17 @@ def get_status_all(unit_type):
             unit.uuid, {"transfer": "unitTransfer", "ingest": "unitSIP"}
             .get(unit_type)
         )
-        if code != 200:
-            return helpers.json_response(res, code)
         status.append(res)
+        
     return (status, 200)
     
 @_api_endpoint(expected_methods=["GET"])
 def status_all(request, unit_type):
-    status = []
     res, code = get_status_all(unit_type)
     if code != 200:
         return helpers.json_response(res, code)
-    status.extend(res)
 
-    #res, code = get_status_all("ingest")
-    #if code != 200:
-    #    return helpers.json_response(res, code)
-    #status.extend(res)
-     
-    msg = {"message": "Fetched status successfully", "results": status}
+    msg = {"message": "Fetched status successfully", "results": res}
     return helpers.json_response(msg, 200)
     
 
