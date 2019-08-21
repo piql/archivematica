@@ -1046,6 +1046,15 @@
                     },
                     {
                         "description": {
+                            "en": "Uncompressed tar"
+                        },
+                        "id": "dee98069-ec2f-460f-b88a-aa168af23188",
+                        "items": {
+                            "AIPCompressionAlgorithm": "tar-tar"
+                        }
+                    },
+                    {
+                        "description": {
                             "en": "Parallel bzip2",
                             "es": "bzip2 paralelo",
                             "pt_BR": "Bzip2 paralelo",
